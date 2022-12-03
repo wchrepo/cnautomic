@@ -1,0 +1,17 @@
+{
+    "random_seed":1,
+    "n_example_in":10,
+    "n_generation":100,
+    "n_iteration":2000, 
+    "name_mapping":{
+        "<某人X>":"张三",
+        "<某人Y>":"李四",
+        "<某人Z>":"王五",
+        "<某样东西Y>":"某样东西"
+    },
+    "separator":"\n",
+    "add_number":true,
+    "prefix_prompt_text":"",
+    "example_prompt_text":"",
+    "generate_prompt_text":"张三 <extra_id_0>"
+}

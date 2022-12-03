@@ -1,0 +1,12 @@
+{
+    "exp_category": "voluntary_occurences",
+    "exp_relation": [
+      "xWant",
+      "xAttr",
+      "xIntent",
+      "xEffect",
+      "xReact",
+      "xNeed",
+      "HinderedBy"
+    ]
+}

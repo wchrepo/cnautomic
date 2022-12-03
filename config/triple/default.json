@@ -1,0 +1,127 @@
+{
+    "model_name": "MT5",
+    "exp_category": "voluntary_occurences",
+    "exp_relation": [
+      "xWant",
+      "xAttr",
+      "xIntent",
+      "xEffect",
+      "xReact",
+      "xNeed",
+      "HinderedBy"
+    ],
+    "random_seed": 1,
+    "names_pool": [
+      "张伟",
+      "李强",
+      "王勇",
+      "刘洋",
+      "王磊",
+      "李军",
+      "刘杰",
+      "王刚",
+      "张鹏",
+      "李辉",
+      "王芳",
+      "李娜",
+      "李秀英",
+      "张静",
+      "张敏",
+      "李娟",
+      "李霞",
+      "张燕",
+      "王桂英",
+      "刘娟"
+    ],
+    "base_name_mapping": {
+      "<某人X>": "张三",
+      "<某人Y>": "李四",
+      "<某人Z>": "王五",
+      "<某样东西Y>": "某样东西"
+    },
+    "use_random_naming": true,
+    "use_random_examples": false,
+    "n_example_in": 8,
+    "generating_placeholder": " <extra_id_0>；",
+    "generate_params": {
+      "top_p": 0.8,
+      "max_tokens": 16,
+      "temperature": 1.0,
+      "stop_tokens": [
+        "；",
+        "。",
+        "（",
+        "\n",
+        ";",
+        "…",
+        ",",
+        "."
+      ],
+      "n_generation": 10
+    },
+    "relation_params": {
+      "xWant": {
+        "prompt": {
+          "add_number": true,
+          "separator": "；",
+          "prefix_prompt_text": "请填写在以下事件后人物想做的事，例如：",
+          "example_prompt_template": "{idx}. {head_item}，在此之后，{X}想要{tail_item}",
+          "generate_prompt_template": "{idx}. {head_item}，在此之后，{X}想要{tail_item}"
+        }
+      },
+      "xAttr": {
+        "prompt": {
+          "add_number": true,
+          "separator": "；",
+          "prefix_prompt_text": "请写出以下事件中，可以看出的人物特点。例如：",
+          "example_prompt_template": "{idx}. {head_item}，据此，可以看出{X}是{tail_item}",
+          "generate_prompt_template": "{idx}. {head_item}，据此，可以看出{X}是{tail_item}"
+        }
+      },
+      "xEffect": {
+        "prompt": {
+          "add_number": true,
+          "separator": "；",
+          "prefix_prompt_text": "请写出以下事件对人物的影响，例如：",
+          "example_prompt_template": "{idx}. {head_item}。结果，{X}{tail_item}",
+          "generate_prompt_template": "{idx}. {head_item}。结果，{X}{tail_item}"
+        }
+      },
+      "xReact": {
+        "prompt": {
+          "add_number": true,
+          "separator": "；",
+          "prefix_prompt_text": "请写出人物在以下事件后的反应、感受，例如：",
+          "example_prompt_template": "{idx}. {head_item}，对此，{X}感觉{tail_item}",
+          "generate_prompt_template": "{idx}. {head_item}，对此，{X}感觉{tail_item}"
+        }
+      },
+      "xNeed": {
+        "prompt": {
+          "add_number": true,
+          "separator": "；",
+          "prefix_prompt_text": "请填写事件发生的前提需求，例如：",
+          "example_prompt_template": "{idx}. 在{head_item}之前，{X}需要{tail_item}",
+          "generate_prompt_template": "{idx}. 在{head_item}之前，{X}需要{tail_item}"
+        }
+      },
+      "xIntent": {
+        "prompt": {
+          "add_number": true,
+          "separator": "；",
+          "prefix_prompt_text": "请填写人物的意图，例如：",
+          "example_prompt_template": "{idx}. {head_item}，{X}的意图是{tail_item}",
+          "generate_prompt_template": "{idx}. {head_item}，{X}的意图是{tail_item}"
+        }
+      },
+      "HinderedBy": {
+        "prompt": {
+          "add_number": true,
+          "separator": "；",
+          "prefix_prompt_text": "什么情况会阻碍如下事件的发生？例如：",
+          "example_prompt_template": "{idx}. {head_item}，但受到阻碍没有顺利进行，因为{tail_item}",
+          "generate_prompt_template": "{idx}. {head_item}，但受到阻碍没有顺利进行，因为{tail_item}"
+        }
+      }
+    }
+  }

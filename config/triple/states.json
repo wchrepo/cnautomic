@@ -1,0 +1,10 @@
+{
+    "exp_category": "states",
+    "exp_relation": [
+      "xWant",
+      "xAttr",
+      "xEffect",
+      "xNeed",
+      "HinderedBy"
+    ]
+}

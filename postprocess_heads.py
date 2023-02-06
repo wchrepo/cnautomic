@@ -17,7 +17,7 @@ category = args.category
 if category is None:
     category = args.path.split('/')[-2]
 input_file_path = args.path
-output_file_path = os.path.join(os.path.dirname(input_file_path),f'processed_{args.cookbook}_{os.path.basename(input_file_path)}')
+output_file_path = os.path.join(os.path.dirname(input_file_path),f'processed_{os.path.basename(input_file_path)}')
 ratio = args.score_ratio
 
 #%%
@@ -38,8 +38,10 @@ def read_instances(path):
 
 
 #%%
-if args.cookbook == 'default':
+result = read_instances(args.path)
 
+if args.cookbook == 'default':
+    name_mapping = result['metadata']['prompt_params']['name_mapping']
     def scrub_placeholder(s,**kwargs):
         for k,v in kwargs.items():
             s = s.replace(v,k)
@@ -107,13 +109,11 @@ if args.cookbook == 'default':
         return remove_rules,normalize
 else:
     import importlib
-    cookbook = importlib.load_module(args.cookbook)
-    remove_rules, normalize = cookbook.get_processing_func(category)
+    cookbook = importlib.import_module(args.cookbook)
+    remove_rules, normalize = cookbook.get_processing_func(category,result['metadata'])
 
 
-#%%
-result = read_instances(args.path)
-name_mapping = result['metadata']['prompt_params']['name_mapping']
+
 #%% filter and normalize
 print(f"===={input_file_path}====")
 result['result'].sort(key=lambda x:x['nll'])

@@ -1,6 +1,7 @@
 
 import re
 import torch
+import os
 class UnderlyingModel:
 
     def __init__(self) -> None:
@@ -43,13 +44,13 @@ class HFS2SModel(UnderlyingModel):
     def __init__(self,pretrained_model_name_or_path) -> None:
         super().__init__()
         self.pretrained_model_name_or_path = pretrained_model_name_or_path
-    def prepare(self):
+    def prepare(self,**kwargs):
         import transformers
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             self.pretrained_model_name_or_path
         )
         self.model = transformers.AutoModelForSeq2SeqLM.from_pretrained(
-            self.pretrained_model_name_or_path
+            self.pretrained_model_name_or_path,**kwargs
         )
         # if parallel:
         #     parallelize(self.model,**parallelformers_kwargs)
@@ -103,14 +104,18 @@ class HFS2SModel(UnderlyingModel):
 class MT5XXL(HFS2SModel):
     def __init__(self) -> None:
         super().__init__("google/mt5-xxl")
-    def prepare(self):
+    def prepare(self,device_map=None):
         super().prepare()
         #WARNING: Hardcode. device_map could be in a config file.
-        device_map = {
-            0: [0, 1, 2],
-            1: [3, 4, 5, 6, 7, 8, 9, 10, 11],
-            2: [12, 13, 14, 15, 16, 17,18,19,20,21,22,23],
-        }
+        # device_map = {
+        #     0: [0, 1, 2],
+        #     1: [3, 4, 5, 6, 7, 8, 9, 10, 11],
+        #     2: [12, 13, 14, 15, 16, 17,18,19,20,21,22,23]
+        # }
+        if "DEVICE_MAP_FILE" in os.environ:
+            with open(os.environ['DEVICE_MAP_FILE']) as f: 
+                device_map = json.load(f)
+                device_map = {(int(k) if k.isdecimal() else k):v for k,v in device_map.items()}items()}
         self.model.parallelize(device_map)
     def n_generate(self, inputs, n_generation=1, end_token=None, max_tokens=None, stop_tokens=[], **kwargs):
         #
@@ -120,14 +125,3 @@ class MT5XXL(HFS2SModel):
             result['text'] = result['text'].removeprefix("<extra_id_0>")
         return results
         
-
-# TODO: OpenAI-styled sampling? 
-# def sample(inputs,model_call,model_kwargs,
-#     eos_token_id=None,max_tokens=15,top_p=1.0,top_n=1,temperature=1.0,
-#     presence_penalty=0.0,frequency_penalty=0.0):
-#     results = []
-#     logits = model_call(inputs,model_kwargs) # (vocab_size,)
-
-# if __name__ == "__main__":
-#     wrapper.generate("1. 张三买书；2. 张三离开家乡；3. 张三和李四一起去逛公园；4. 张三打开了电脑；5. 张三 <extra_id_0>",top_p=0.9)
-

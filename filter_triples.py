@@ -12,7 +12,7 @@ import argparse
 import sys
 import json
 import mlflow
-from sklearn import metrics
+# from sklearn import metrics
 from tqdm.auto import tqdm
 import numpy as np
 from triple_utils import random_naming,example2text
@@ -25,9 +25,9 @@ parser.add_argument('--triple_filter_path', type=str)
 parser.add_argument('--head_filter_device', type=str) 
 parser.add_argument('--tail_filter_device', type=str) 
 parser.add_argument('--triple_filter_device', type=str) 
+parser.add_argument('--thresholds_config',type=str,default="config/triple_post/default.json")
 args=parser.parse_args()
 #%%
-#构造一个wrapper，包含模型的各种功能。能够接收一系列三元组，并且返回打分。构造wrapper只需要提供模型的path
 class CriticWrapper:
     def __init__(self,load_path,device="cuda",batch_size=128) -> None:
         self.load_path = load_path
@@ -94,11 +94,11 @@ class CriticWrapper:
         #     self.triple_config = json.load(f)
     def triple_to_sequence(self,triple):
         if self.exp_config['naming_setting'] == "random":
-            #TODO 暂未实现根据关系调整参数的功能
+
             name_mapping = random_naming(
                 base_name_mapping=self.exp_config["base_name_mapping"],
                 names_pool=self.exp_config["names_pool"]
-            ) #或许可以用names-dataset pip安装
+            ) 
         elif self.exp_config['naming_setting'] == "base":
             name_mapping = self.exp_config["base_name_mapping"]
         else:
@@ -158,42 +158,11 @@ tail_filter = CriticWrapper(
 
 
 #%%
-head_threshold = 0.8
-tail_threshold = 0.35
-#确定triple thresholds的方法：应该依靠precision.
-# 但是实际上precision的估计并不准确，并不是单调递减的。
-# 我们应该检查所有检查点，找到最后一个比预定大小大的，如果没有，就用记录的最大的。
-
-
-triple_thresholds_settings = {
-    "s":{
-        "xWant":0.60,
-        "xAttr":0.50,
-        "xEffect":0.45,
-        "xReact":0.75,
-        "xNeed":0.45,
-        "xIntent":0.65,
-        "HinderedBy":0.7
-    },
-    "b":{
-        "xWant":0.4,
-        "xAttr":0.5,
-        "xEffect":0.35,
-        "xReact":0.65,
-        "xNeed":0.4,
-        "xIntent":0.6,
-        "HinderedBy":0.65
-    },
-    "l":{
-        "xWant":0.30,
-        "xAttr":0.35,
-        "xEffect":0.25,
-        "xReact":0.50,
-        "xNeed":0.3,
-        "xIntent":0.55,
-        "HinderedBy":0.55
-    }
-}
+with open(args.threshold_config) as f:
+    threshold_config = json.load(f)
+head_threshold = threshold_config['head_threshold']
+tail_threshold = threshold_config['tail_threshold']
+triple_thresholds_settings = threshold_config['triple_thresholds_settings']
 
 
 

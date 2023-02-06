@@ -34,7 +34,7 @@ with open(os.path.join(out_dir,'all_scored.jsonl.txt'),'w') as f:
     for triple,d in tqdm(combined_source_data.items()):
         print(json.dumps({"triple":d['triple'],"subset":d['subset'],"scores":d['scores']},ensure_ascii=False),file=f)
 
-for split in ['s','b','l']:
+for split in ['high','mid','low']:
     with open(os.path.join(args.path,f"{split}_filtered.jsonl.txt"),'w') as f:
         for triple,d in tqdm(combined_source_data.items()):
             if split in d['subset']:
@@ -48,79 +48,84 @@ for d in combined_source_data.values():
 
 # %%
 
-#normalize eventuality
+if args.cookbook == 'default':
+    def mapping_xWant(tail):
+        return "<某人X>"+tail
 
-def mapping_xWant(tail):
-    return "<某人X>"+tail
+    def mapping_xNeed(tail):
+        return "<某人X>"+tail
 
-def mapping_xNeed(tail):
-    return "<某人X>"+tail
+    def mapping_xIntent(tail):
+        return "<某人X>"+tail
 
-def mapping_xIntent(tail):
-    return "<某人X>"+tail
+    import jieba
+    def mapping_xEffect(tail): #用了简单的词型还原，去掉“了”
+        return "<某人X>"+"".join(w for w in jieba.cut(tail) if w != '了')
 
-import jieba
-def mapping_xEffect(tail): #用了简单的词型还原，去掉“了”
-    return "<某人X>"+"".join(w for w in jieba.cut(tail) if w != '了')
+    def mapping_xReact(tail):
+        return "<某人X>感觉" + tail
 
-def mapping_xReact(tail):
-    return "<某人X>感觉" + tail
+    def mapping_HinderedBy(tail):
+        if tail.startswith("<某人X>"):
+            return tail
+        else:
+            return None
 
-def mapping_HinderedBy(tail):
-    if tail.startswith("<某人X>"):
-        return tail
-    else:
-        return None
-
-eventuality_mappings = {
-    "xAttr": None,
-    "xWant": (mapping_xWant,"voluntary_occurences"),
-    "xNeed": (mapping_xNeed,"voluntary_occurences"),
-    "xIntent": (mapping_xIntent,"voluntary_occurences"),
-    "xEffect": (mapping_xEffect,"involuntary_occurences"),
-    "xReact": (mapping_xReact,"states"),
-    "HinderedBy": (mapping_HinderedBy,"involuntary_occurences"),
-}
-#%% analysis tail for each rel
+    node_mapping = {
+        "xAttr": None,
+        "xWant": (mapping_xWant,"voluntary_occurences"),
+        "xNeed": (mapping_xNeed,"voluntary_occurences"),
+        "xIntent": (mapping_xIntent,"voluntary_occurences"),
+        "xEffect": (mapping_xEffect,"involuntary_occurences"),
+        "xReact": (mapping_xReact,"states"),
+        "HinderedBy": (mapping_HinderedBy,"involuntary_occurences"),
+    }
+    ensure_occurence_more_than_n = 3
+else:
+    import importlib
+    cookbook = importlib.import_module(args.cookbook)
+    node_mapping=cookbook.node_mapping
+    ensure_occurence_more_than_n = cookbook.ensure_occurence_more_than_n
+#%% count tail for each rel
 analysis_rel_tail = {}
 for d in combined_source_data.values():
-    if 'b' in d['subset']:
+    if 'mid' in d['subset']:
         if d['triple']['r'] not in analysis_rel_tail:
             analysis_rel_tail[d['triple']['r']] = Counter()
         analysis_rel_tail[d['triple']['r']][d['triple']['t']] += 1
 
 
-# %% 直接构造一个从高频到低频的列表
+# # %% 
 
 analysis_rel_tail_sorted = {}
 for rel,rel_stat in analysis_rel_tail.items():
     total = sum(v for v in rel_stat.values())
     analysis_rel_tail_sorted[rel] = []
     for d in sorted(((k,v,v/total) for k,v in rel_stat.items()),key=lambda x:x[1],reverse=True):
-        if eventuality_mappings.get(rel) is None:
+        if node_mapping.get(rel) is None:
             analysis_rel_tail_sorted[rel].append(d + (None,False))
         else:
-            m_func,m_category = eventuality_mappings[rel]
+            m_func,m_category = node_mapping[rel]
             mapped = m_func(d[0])
             analysis_rel_tail_sorted[rel].append(d+(mapped,mapped in head_set))
 # %%
 
 
-def get_top_n(rel_tail_sorted,n):
+def get_tail_occurence_more_than_n(rel_tail_sorted,n):
     to_return = []
     for d in rel_tail_sorted:
-        to_return.append(d)
         if d[1] < n:
             break
+        to_return.append(d)
     return to_return
 #%%
-n = 3
-top_in_all = {}
+
+highfreq_tails = {}
 for rel,rel_stat in analysis_rel_tail_sorted.items():
-    top_in_all[rel] = get_top_n(rel_stat,n)
-for rel,data in top_in_all.items():
+    highfreq_tails[rel] = get_tail_occurence_more_than_n(rel_stat,ensure_occurence_more_than_n)
+for rel,data in highfreq_tails.items():
     print(rel,len(data))
-print(sum(len(data) for data in top_in_all.values()))
+print(sum(len(data) for data in highfreq_tails.values()))
 
 
 #%%
@@ -131,12 +136,12 @@ mapping_results = {
     "states":[],
 }
 # top_in_all_mapping_stat = {}
-for rel,data in top_in_all.items():
-    if eventuality_mappings.get(rel) is None:
+for rel,data in highfreq_tails.items():
+    if node_mapping.get(rel) is None:
         continue
     # top_in_all_mapping_stat[rel] = []
     for d in data:
-        m_func,m_category = eventuality_mappings[rel]
+        m_func,m_category = node_mapping[rel]
         mapped = m_func(d[0])
         if mapped:
             # mapping_records[(rel,d[0])] = mapped
@@ -153,16 +158,16 @@ for k,v in mapping_results.items():
     mapping_results_deduplicates[k] = list(set(v)-head_set)
     print(len(mapping_results_deduplicates[k]))
 #%%
-#输出
+#Output
 out_dir = f"results/{workspace}/iteration_heads/"
 if not os.path.exists(os.listdir(out_dir)):
     out_dir = out_dir + str(1)
 else:
     out_dir = out_dir + str(1+len(os.listdir(out_dir)))
 os.makedirs(out_dir,exist_ok=True)
-for category,results in mapping_results.items():
+for category,results in mapping_results_deduplicates.items():
     with open(os.path.join(out_dir,f"{category}.jsonl.txt"),'w') as f:
-        print(json.dumps({"sources":sources,"keep_n":n}),file=f)
+        print(json.dumps({"sources":sources,"keep_n":ensure_occurence_more_than_n}),file=f)
         for r in results:
             print(r,file=f)
 # %%

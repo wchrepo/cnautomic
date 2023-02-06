@@ -1,0 +1,33 @@
+{
+    "head_threshold":0.8,
+    "tail_threshold":0.35,
+    "triple_thresholds_settings":{
+        "high":{
+            "xWant":0.60,
+            "xAttr":0.50,
+            "xEffect":0.45,
+            "xReact":0.75,
+            "xNeed":0.45,
+            "xIntent":0.65,
+            "HinderedBy":0.7
+        },
+        "mid":{
+            "xWant":0.4,
+            "xAttr":0.5,
+            "xEffect":0.35,
+            "xReact":0.65,
+            "xNeed":0.4,
+            "xIntent":0.6,
+            "HinderedBy":0.65
+        },
+        "low":{
+            "xWant":0.30,
+            "xAttr":0.35,
+            "xEffect":0.25,
+            "xReact":0.50,
+            "xNeed":0.3,
+            "xIntent":0.55,
+            "HinderedBy":0.55
+        }
+    }
+}

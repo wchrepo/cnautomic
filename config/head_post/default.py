@@ -2,7 +2,8 @@ def scrub_placeholder(s,**kwargs):
     for k,v in kwargs.items():
         s = s.replace(v,k)
     return s
-def get_processing_func(category):
+def get_processing_func(category,metadata):
+    name_mapping = metadata['prompt_params']['name_mapping']
     if category == 'voluntary_occurences':
         # remove_rules tell when to remove a generated results. They are applied sequentially. 
         # If any remove_rule returns True, the result will be removed.

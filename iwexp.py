@@ -93,3 +93,15 @@ class TracingConfig(dict):
             os.makedirs(os.path.dirname(dump_path))
         with open(dump_path,'w') as f:
             json.dump(self,f,ensure_ascii=False,indent=2)
+def flatten_dict(d,prefix="",max_depth=None,separator='.'):
+    if prefix:
+        prefix = prefix + separator
+    if max_depth is not None:
+        max_depth -= 1
+    def flatten_iter(d,prefix=prefix):
+        for k,v in d.items():
+            if isinstance(v,dict) and (max_depth is None or max_depth > 0):
+                yield from flatten_iter(v,prefix=f"{prefix}{k}{separator}")
+            else:
+                yield f"{prefix}{k}",v
+    return dict(flatten_iter(d))

@@ -2,3 +2,5 @@ pytorch
 transformers
 tqdm
 mlflow
+jieba
+accelerate

@@ -18,7 +18,8 @@ parser.add_argument('--config', default=None, type=str,nargs='*',
     help='config for generate inference')
 parser.add_argument('--workspace',default="default",type=str,
     help="an optional workspace (sub-directory) name. The generated results will be saved at `results/{workspace}/heads/{category}/`")
-parser.add_argument('--force_params',default=None,type=str)
+parser.add_argument('--output_filename',default=None,type=str,help="output file name. If omitted, the output file name will be set according to current time.")
+parser.add_argument('--force_params',default=None,type=str,help="changing hyperparameters using python dict syntax. Example: {'random_seed':2}")
 parser.add_argument("--note",type=str,default="", help="add a note about the experiment.")
 args=parser.parse_args()
 if args.force_params:
@@ -116,6 +117,8 @@ elif category == "involuntary_occurences":
     all_seeds = involuntary_occurences
 elif category == "states":
     all_seeds = states
+else:
+    raise NotImplementedError(f"The seeds of {category} are not defined")
 
 
 prompt_params = {
@@ -151,7 +154,10 @@ mlflow.log_params({f"prompt_params.{k}":v for k,v in prompt_params.items()})
 mlflow.log_params({f"run_params.{k}":v for k,v in run_params.items()})
 mlflow.log_params(generate_params)
 os.makedirs(f"results/{workspace}/heads/{category}/",exist_ok=True)
-output_path = f"results/{workspace}/heads/{category}/{time.strftime('%Y%m%d_%a_%H:%M:%S')}.jsonl.txt"
+output_filename = args.output_filename
+if output_filename is None:
+    output_filename = time.strftime('%Y%m%d_%a_%H:%M:%S')
+output_path = f"results/{workspace}/heads/{category}/{output_filename}.jsonl.txt"
 with open(output_path,'w') as f:
     print(json.dumps(
             {"prompt_params":prompt_params,

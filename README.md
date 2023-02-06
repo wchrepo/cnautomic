@@ -51,11 +51,11 @@ If you create your own config files, be sure to modify the construction scripts 
 
 ## Knowledge Model (CN-COMET)
 
-Use huggingface transformers to load the knowledge model and infer.
+Decompress the cn-automic.zip, and use huggingface transformers to load the knowledge model and infer.
 
 ```python
 from transformers import AutoTokenizer,AutoModelForSeq2SeqLM
-knowledge_model_path = "cn_comet/final/"
+knowledge_model_path = "cn-comet/final/"
 
 tokenizer = AutoTokenizer.from_pretrained(knowledge_model_path)
 model = AutoModelForSeq2SeqLM.from_pretrained(knowledge_model_path)
